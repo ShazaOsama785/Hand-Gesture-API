@@ -6,7 +6,7 @@ import json
 import logging
 import os
 from prometheus_fastapi_instrumentator import Instrumentator
-
+from fastapi.middleware.cors import CORSMiddleware
 # ------------------------
 # Setup logging
 # ------------------------
@@ -39,6 +39,15 @@ except Exception as e:
 # Create FastAPI app
 # ------------------------
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, specify your frontend domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 Instrumentator().instrument(app).expose(app)
 
 # ------------------------
