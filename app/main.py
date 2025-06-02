@@ -40,11 +40,34 @@ except Exception as e:
 # ------------------------
 app = FastAPI()
 Instrumentator().instrument(app).expose(app)
+
 # ------------------------
 # Input schema
 # ------------------------
 class HandLandmarkInput(BaseModel):
     landmarks: list[float]  # Flat list of 63 floats (21 landmarks × 3 coordinates)
+
+# ------------------------
+# Normalize function
+# ------------------------
+def normalize_landmarks(landmarks):
+    try:
+        landmarks = np.array(landmarks).reshape(21, 3)
+        wrist = landmarks[0]
+        middle_tip = landmarks[12]
+        dx = middle_tip[0] - wrist[0]
+        dy = middle_tip[1] - wrist[1]
+        scale = np.sqrt(dx**2 + dy**2) + 1e-6
+        normalized = []
+        for x, y, z in landmarks:
+            norm_x = (x - wrist[0]) / scale
+            norm_y = (y - wrist[1]) / scale
+            norm_z = (z - wrist[2]) / scale
+            normalized.extend([norm_x, norm_y, norm_z])
+        return np.array(normalized).reshape(1, -1)
+    except Exception as e:
+        logger.error(f"Normalization failed: {e}")
+        raise
 
 # ------------------------
 # Routes
@@ -64,15 +87,14 @@ def predict(data: HandLandmarkInput):
     try:
         logger.info(f"Received landmarks of length {len(data.landmarks)}")
 
-        # Validate input
         if len(data.landmarks) != 63:
             raise ValueError("Expected 63 values (21 landmarks * 3 coordinates)")
 
-        # Convert to 2D array
-        input_array = np.array(data.landmarks).reshape(1, -1)
+        # Normalize landmarks
+        normalized_input = normalize_landmarks(data.landmarks)
 
         # Predict
-        prediction = model.predict(input_array)[0]
+        prediction = model.predict(normalized_input)[0]
         gesture = inverse_mapping.get(prediction, "Unknown")
 
         logger.info(f"Predicted gesture: {gesture}")
