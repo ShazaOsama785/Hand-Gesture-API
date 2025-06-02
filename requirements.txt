@@ -81,3 +81,4 @@ wrapt==1.17.2
 xgboost==3.0.2
 zipp==3.22.0
 prometheus_fastapi_instrumentator
+pytest
