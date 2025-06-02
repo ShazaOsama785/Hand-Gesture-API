@@ -5,6 +5,7 @@ import numpy as np
 import json
 import logging
 import os
+from prometheus_fastapi_instrumentator import Instrumentator
 
 # ------------------------
 # Setup logging
@@ -38,7 +39,7 @@ except Exception as e:
 # Create FastAPI app
 # ------------------------
 app = FastAPI()
-
+Instrumentator().instrument(app).expose(app)
 # ------------------------
 # Input schema
 # ------------------------
