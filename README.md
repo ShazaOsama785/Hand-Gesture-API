@@ -59,6 +59,6 @@ Prometheus & Grafana
 
 pytest (unit testing)
 
-Deployed on AWS/ClawCloud
+Deployed on ClawCloud
 
 
